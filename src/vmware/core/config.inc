@@ -36,4 +36,9 @@ MAX_FKEYS	equ 12			; Number of F-key help files
 ;
 %include "../version.gen"
 
+;
+; VMware changes
+;
+%assign VMWARE 1
+
 %endif ; _CONFIG_INC

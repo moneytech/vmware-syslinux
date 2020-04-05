@@ -1060,6 +1060,41 @@ is_pxenv	equ is_struc.pxenv
 close_file:
 		and si,si
 		jz .closed
+
+%if VMWARE
+		;
+		; VMware PR 895626 and PR 2210852.
+		; Check to see if this file is still open on the server.
+		;
+		pushad
+		xor ax,ax
+		cmp [si+tftp_localport],ax
+		jz .got_eof
+		cmp [si+tftp_goteof],al
+		jnz .got_eof
+		;
+		; Send a courtesy ERROR packet to the server to close it.
+		;
+		mov ax,[si+tftp_localport]
+		mov [pxe_udp_write_pkt.lport],ax
+		mov ax,[si+tftp_remoteport]
+		mov word [pxe_udp_write_pkt.rport],ax
+		mov eax,[si+tftp_remoteip]
+		mov [pxe_udp_write_pkt.sip],eax
+		xor eax,[MyIP]
+		and eax,[Netmask]
+		jz .nogw
+		mov eax,[Gateway]
+.nogw:
+		mov [pxe_udp_write_pkt.gip],eax
+		mov word [pxe_udp_write_pkt.buffer],tftp_close
+		mov word [pxe_udp_write_pkt.buffersize],tftp_close_len
+		mov di,pxe_udp_write_pkt
+		mov bx,PXENV_UDP_WRITE
+		call pxenv
+.got_eof:
+		popad
+%endif
 		mov word [si],0		; Not in use
 .closed:	ret
 
@@ -3020,6 +3055,16 @@ tftp_proto_err	dw TFTP_ERROR				; ERROR packet
 		db 'TFTP protocol error', 0		; Error message
 tftp_proto_err_len equ ($-tftp_proto_err)
 
+%if VMWARE
+;
+; (Non-)error packet to return on early TFTP file close
+;
+		alignz 4
+tftp_close      dw TFTP_ERROR				; ERROR packet
+		dw TFTP_EUNDEF				; ERROR 0
+		db 'No error, file close', 0		; (Non-)error message
+tftp_close_len	equ ($-tftp_close)
+%endif
 		alignz 4
 ack_packet_buf:	dw TFTP_ACK, 0				; TFTP ACK packet
 
