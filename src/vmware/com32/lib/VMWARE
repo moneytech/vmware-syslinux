@@ -1,0 +1,6 @@
+Fixed by VMware:
+  - memmem.c
+  - memchr.c
+  - strchr.c
+  - strncat.c
+  - syslinux/runimage.c
