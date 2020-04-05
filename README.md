@@ -1,6 +1,7 @@
 # # RHEL & CentOS
 ```
-# yum groupinstall 'Development Tools' yum install nasm binutils-devel libuuid-devel elfutils-devel
+# yum groupinstall 'Development Tools'
+# yum install nasm binutils-devel libuuid-devel elfutils-devel
 ```
 # # Build
 ```
